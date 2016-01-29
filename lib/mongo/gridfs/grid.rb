@@ -33,12 +33,6 @@ module Mongo
       @files   = @db["#{fs_name}.files"]
       @chunks  = @db["#{fs_name}.chunks"]
       @fs_name = fs_name
-
-      # This will create indexes only if we're connected to a primary node.
-      begin
-        @chunks.ensure_index([['files_id', Mongo::ASCENDING], ['n', Mongo::ASCENDING]], :unique => true)
-      rescue Mongo::ConnectionFailure
-      end
     end
 
     # Store a file in the file store. This method is designed only for writing new files;
@@ -66,9 +60,6 @@ module Mongo
     # @return [BSON::ObjectId] the file's id.
     def put(data, opts={})
       begin
-        # Ensure there is an index on files_id and n, as state may have changed since instantiation of self.
-        # Recall that index definitions are cached with ensure_index so this statement won't unneccesarily repeat index creation.
-        @chunks.ensure_index([['files_id', Mongo::ASCENDING], ['n', Mongo::ASCENDING]], :unique => true)
         opts     = opts.dup
         filename = opts.delete(:filename)
         opts.merge!(default_grid_io_opts)
