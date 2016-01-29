@@ -34,13 +34,6 @@ module Mongo
       @fs_name = fs_name
 
       @default_query_opts = {:sort => [['filename', 1], ['uploadDate', -1]], :limit => 1}
-
-      # This will create indexes only if we're connected to a primary node.
-      begin
-        @files.ensure_index([['filename', 1], ['uploadDate', -1]])
-        @chunks.ensure_index([['files_id', Mongo::ASCENDING], ['n', Mongo::ASCENDING]], :unique => true)
-      rescue Mongo::ConnectionFailure
-      end
     end
 
     # Open a file for reading or writing. Note that the options for this method only apply
@@ -100,10 +93,6 @@ module Mongo
       opts.merge!(default_grid_io_opts(filename))
       if mode == 'w'
         begin
-          # Ensure there are the appropriate indexes, as state may have changed since instantiation of self.
-          # Recall that index definitions are cached with ensure_index so this statement won't unneccesarily repeat index creation.
-          @files.ensure_index([['filename', 1], ['uploadDate', -1]])
-          @chunks.ensure_index([['files_id', Mongo::ASCENDING], ['n', Mongo::ASCENDING]], :unique => true)
           versions = opts.delete(:versions)
           if opts.delete(:delete_old) || (versions && versions < 1)
             versions = 1
