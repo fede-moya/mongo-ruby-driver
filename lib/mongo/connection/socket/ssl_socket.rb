@@ -83,12 +83,16 @@ module Mongo
     end
 
     def read(length, buffer)
-      if @op_timeout
-        Timeout::timeout(@op_timeout, OperationTimeout) do
+      begin
+        if @op_timeout
+          Timeout::timeout(@op_timeout, OperationTimeout) do
+            @socket.sysread(length, buffer)
+          end
+        else
           @socket.sysread(length, buffer)
         end
-      else
-        @socket.sysread(length, buffer)
+      rescue EOFError
+        raise ConnectionFailure
       end
     end
   end
