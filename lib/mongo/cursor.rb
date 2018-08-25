@@ -556,7 +556,7 @@ module Mongo
           @pool = nil
           @connection.unpin_pool
           @connection.refresh
-          if tries < 3 && !@socket && (!@command || Mongo::ReadPreference::secondary_ok?(@selector))
+          if tries < 3
             tries += 1
             retry
           else
